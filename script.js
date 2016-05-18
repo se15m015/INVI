@@ -63,8 +63,22 @@ var dsv = d3.dsv(";","text/plain");
 			var yScale = d3.scale.linear()
                      .domain([d3.min(rows, function(d) { return d["Miles per gallon"]; }), d3.max(rows, function(d) { return d["Miles per gallon"]; })])
                      .range([h-padding, padding]);
-			                     
-			                     
+                     
+            var cScale = d3.scale.category10();
+                     
+            /*
+var cScale = d3.scale.ordinal()
+            		.domain(["USA", "Europe", "Japan"])
+            		.rangeBands([0,360]);
+            		
+            		console.log("USA", cScale("USA"));
+					console.log("Europe", cScale("Europe"));
+					console.log("Japan", cScale("Japan"));
+*/                     
+			var tooltip = d3.select("body").append("div")
+							.attr("class", "tooltip")
+							.style("opacity",0);         
+			
             var circle = svg.selectAll("circle")
 				.data(rows)
 				.enter()
@@ -75,7 +89,25 @@ var dsv = d3.dsv(";","text/plain");
 				.attr("cy", function(d){
 					return yScale(d["Miles per gallon"]);
 				})
-				.attr("r", 3);		   
+				.attr("r", 3)
+				.attr("fill", function(d){
+					//return "hsl("+cScale(d["Origin"])+", 50%, 50%)";
+					return cScale(d["Origin"]);
+
+				})
+				.on("mouseover", function(d){
+					tooltip.transition()
+							.duration(200)
+							.style("opacity", .9);
+					tooltip.html("<strong>" + d["Name"] + "</strong><br/>Acceleration: " + d["Acceleration"] + "<br/>Miles per gallon: " + d["Miles per gallon"]  + "<br/>Origin: " + d["Origin"])
+							.style("left", (d3.event.pageX + 10) + "px")
+							.style("top", (d3.event.pageY - 10) + "px")
+				})
+				.on("mouseout", function(d){
+					tooltip.transition()
+							.duration(500)
+							.style("opacity", 0);
+				});		   
 
 				//Define X axis	
 				var xAxis = d3.svg.axis()
@@ -99,9 +131,47 @@ var dsv = d3.dsv(";","text/plain");
 				    .attr("class", "axis")
 				    .attr("transform", "translate(" + padding + ",0)")
 				    .call(yAxis);
+				
+				// text label for the x axis
+				svg.append("text")      
+			        .attr("x", w - 100 )
+			        .attr("y",  h - 35)
+			        .attr("font-family", "sans-serif")
+					.attr("font-size", "11px")
+			        .style("text-anchor", "middle")
+			        .text("Acceleration");
+			        
+			    // text label for the y axis
+				svg.append("text")  
+					.attr("transform", "translate(45,70)rotate(270)")   
+			        .attr("x", 0)
+			        .attr("y", 0)
+			        .attr("font-family", "sans-serif")
+					.attr("font-size", "11px")
+			        .style("text-anchor", "middle")
+			        .text("Miles per gallon");
+			        
+			    //Legend
+			    var legend = svg.selectAll(".legend")
+							      .data(cScale.domain())
+							      .enter().append("g")
+							      .attr("class", "legend")
+							      .attr("transform", function(d, i) { return "translate(0," + i * 20 + ")"; });
+							
+				  legend.append("rect")
+				      .attr("x", w - 18)
+				      .attr("width", 18)
+				      .attr("height", 18)
+				      .style("fill", cScale);
+				
+				  legend.append("text")
+				      .attr("x", w - 24)
+				      .attr("y", 9)
+				      .attr("dy", ".35em")
+				      .attr("font-family", "sans-serif")
+				      .attr("font-size", "11px")
+				      .style("text-anchor", "end")
+				      .text(function(d) { return d; });
+							   		
    
             });
-            
-
-			
-			
