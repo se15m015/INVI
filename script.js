@@ -65,16 +65,7 @@ var dsv = d3.dsv(";","text/plain");
                      .range([h-padding, padding]);
                      
             var cScale = d3.scale.category10();
-                     
-            /*
-var cScale = d3.scale.ordinal()
-            		.domain(["USA", "Europe", "Japan"])
-            		.rangeBands([0,360]);
-            		
-            		console.log("USA", cScale("USA"));
-					console.log("Europe", cScale("Europe"));
-					console.log("Japan", cScale("Japan"));
-*/                     
+                                         
 			var tooltip = d3.select("body").append("div")
 							.attr("class", "tooltip")
 							.style("opacity",0);         
@@ -172,6 +163,59 @@ var cScale = d3.scale.ordinal()
 				      .attr("font-size", "11px")
 				      .style("text-anchor", "end")
 				      .text(function(d) { return d; });
+
+				//Brush
+				  var brush = d3.svg.brush()
+							      .x(xScale)
+							      .y(yScale)
+							      .on("brush", brushmove)
+							      .on("brushend", brushend);
+							      
+								      
+				svg.append("g")
+					.call(brush);
+				
+				  function brushmove(p) {
+				  var e = brush.extent();
+				  
+				  // Hide all not Selected circles
+				   svg.selectAll("circle").classed("hidden", function(d) {
+				     	return isOutside(d,e);
+				    });
+					// Highlight the selected circles.
+					svg.selectAll("circle").classed("selected", function(d) {
+				     	return isInside(d,e);
+				    });
+				    
+				    // Highlight Tablecells
+				    table.selectAll("tr").classed("highlighted", function(d){
+					    return isInside(d,e);
+					});
+				    				   
+				  }
+				
+				  // If the brush is empty, select all circles.
+				  function brushend() {
+				  	if (brush.empty()) svg.selectAll(".hidden").classed("hidden", false);
+				  }
+				  
+				  function isOutside(d,e){
+				 	   if(d == undefined)
+				  		return false;
+				  		
+					  return e[0][0] > d["Acceleration"] || d["Acceleration"] > e[1][0] 
+				    	|| e[0][1] > d["Miles per gallon"] || d["Miles per gallon"] > e[1][1];
+
+				  }
+				  
+				  function isInside(d,e){
+				  	   if(d == undefined)
+				  		return false;
+				  		
+					  return e[0][0] <= d["Acceleration"] && d["Acceleration"] <= e[1][0] 
+				    	&& e[0][1] <= d["Miles per gallon"] && d["Miles per gallon"] <= e[1][1];
+
+				  }
 							   		
    
             });

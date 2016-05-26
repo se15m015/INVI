@@ -1,3 +1,26 @@
+/*brushes*/
+.extent {
+  fill: #000;
+  fill-opacity: .125;
+  stroke: #fff;
+}
+
+table tr.highlighted td {
+	color: black;
+	background: #15e1f3;
+	background: -webkit-gradient(linear, left top, left bottom, from(#15e1f3), to(#15e1f3));
+	background: -moz-linear-gradient(top,  #15e1f3,  #15e1f3);
+}
+
+circle.hidden {
+  fill: #ccc !important;
+}
+
+circle.selected {
+	stroke: black;
+}
+
+/*Plot*/
 .tooltip{
 	position: absolute;
 	width: 130px;
@@ -51,7 +74,6 @@ table {
 	font-family:Arial, Helvetica, sans-serif;
 	color:#666;
 	font-size:12px;
-	text-shadow: 1px 1px 0px #fff;
 	background:#eaebec;
 	margin:20px;
 	border:#ccc 1px solid;
