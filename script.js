@@ -205,9 +205,7 @@ var dsv = d3.dsv(";","text/plain");
 				  }
 				  
 				  //***** Bar Chart ******//
-				  
-				  bins = d3.layout.histogram().value(function(data){return data["Model year"]});
-				  
+				 	  
 				  var xScaleHistogramm = d3.scale.linear()
                      .domain([d3.min(rows, function(d) { return d["Model year"]; })-0.5, d3.max(rows, function(d) { return d["Model year"]; })+0.5])
                      .range([padding, w-padding*2]);
@@ -226,7 +224,9 @@ var dsv = d3.dsv(";","text/plain");
 				var yAxisHistogramm = d3.svg.axis()
 				                  .scale(yScaleHistogramm)
 				                  .orient("left");
-				  
+	
+				 var bins = d3.layout.histogram().value(function(data){return data["Model year"]});
+								 
 				 var histogrammRange = d3.range(d3.min(rows, function(data){return data.my;}), d3.max(rows, function(data){return data.my;}) + 2);
 				 
         		 bins.bins(histogrammRange);
