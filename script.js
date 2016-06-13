@@ -1,10 +1,15 @@
-var w = 1000;
+var w = 600;
 var h = 500;
 var padding = 30;
 
 var svg = d3.select("body")
 			.append("svg")
 			.attr("width", w)
+			.attr("height", h);
+			
+var histo = d3.select("body")
+			.append("svg")
+			.attr("width", w) 
 			.attr("height", h);
 
 var dsv = d3.dsv(";","text/plain");
@@ -170,8 +175,7 @@ var dsv = d3.dsv(";","text/plain");
 							      .y(yScale)
 							      .on("brush", brushmove)
 							      .on("brushend", brushend);
-							      
-								      
+							      							      
 				svg.append("g")
 					.call(brush);
 				
@@ -180,6 +184,7 @@ var dsv = d3.dsv(";","text/plain");
 				  
 				  // Hide all not Selected circles
 				   svg.selectAll("circle").classed("hidden", function(d) {
+				   console.log(e[0]);
 				     	return isOutside(d,e);
 				    });
 					// Highlight the selected circles.
@@ -199,6 +204,91 @@ var dsv = d3.dsv(";","text/plain");
 				  	if (brush.empty()) svg.selectAll(".hidden").classed("hidden", false);
 				  }
 				  
+				  //***** Bar Chart ******//
+				  
+				  bins = d3.layout.histogram().value(function(data){return data["Model year"]});
+				  
+				  var xScaleHistogramm = d3.scale.linear()
+                     .domain([d3.min(rows, function(d) { return d["Model year"]; })-0.5, d3.max(rows, function(d) { return d["Model year"]; })+0.5])
+                     .range([padding, w-padding*2]);
+                     
+				  var yScaleHistogramm = d3.scale.linear()
+                     .domain([0, d3.max(rows, function(d) { return d["Miles per gallon"]; })])
+                     .range([h-padding, padding]);
+
+				//Define X axis Histogramm
+				var xAxisHistogramm = d3.svg.axis()
+				                  .scale(xScaleHistogramm)
+				                  .orient("bottom")
+				                  .tickFormat(d3.format("d"));
+				                  
+				//Define Y axis Histogramm
+				var yAxisHistogramm = d3.svg.axis()
+				                  .scale(yScaleHistogramm)
+				                  .orient("left");
+				  
+				 var histogrammRange = d3.range(d3.min(rows, function(data){return data.my;}), d3.max(rows, function(data){return data.my;}) + 2);
+				 
+        		 bins.bins(histogrammRange);
+				
+				var barChart = histo.append("g");
+				
+				var barWrapper = histo.selectAll(".barWrapper")
+            						.data(rows)
+            						.enter()
+           	 						.append("g")
+            						.attr("class", "barWrapper");
+            	/*						
+            	barWrapper.append("rect")
+            					.attr("class", "bar")
+            					.attr("x", function() {
+                					return Math.floor((xScaleHistogramm(bins[0].x) - xScaleHistogramm(bins[0].x + bins[0].dx))/2);
+            					})
+            					.attr("width", function(){
+                					return Math.floor(xScaleHistogramm(bins[0].x + bins[0].dx) - xScaleHistogramm(bins[0].x));
+            					})
+            					.attr("height", function(d) { return h - padding * 2 - yScaleHistogramm(d.y); });
+				  */          			
+            	//Create X axis Histogramm
+				histo.append("g")
+				    .attr("class", "axis")
+				    .attr("transform", "translate(0," + (h - padding) + ")")
+				    .call(xAxisHistogramm);
+				    
+				//Create Y axis Histogramm
+				histo.append("g")
+				    .attr("class", "axis")
+				    .attr("transform", "translate(" + padding + ",0)")
+				    .call(yAxisHistogramm);
+				
+				// text label for the x axis Histogramm
+				histo.append("text")      
+			        .attr("x", w - 100 )
+			        .attr("y",  h - 35)
+			        .attr("font-family", "sans-serif")
+					.attr("font-size", "11px")
+			        .style("text-anchor", "middle")
+			        .text("Model Year");
+			        
+			    // text label for the y axis Histogramm
+				histo.append("text")  
+					.attr("transform", "translate(45,70)rotate(270)")   
+			        .attr("x", 0)
+			        .attr("y", 0)
+			        .attr("font-family", "sans-serif")
+					.attr("font-size", "11px")
+			        .style("text-anchor", "middle")
+			        .text("Count");
+            						
+								
+				  console.log(bins);
+				  
+				  
+				  
+				  
+				  
+				  
+				  //Helper Functions
 				  function isOutside(d,e){
 				 	   if(d == undefined)
 				  		return false;
