@@ -184,7 +184,6 @@ var dsv = d3.dsv(";","text/plain");
 				  
 				  // Hide all not Selected circles
 				   svg.selectAll("circle").classed("hidden", function(d) {
-				   console.log(e[0]);
 				     	return isOutside(d,e);
 				    });
 					// Highlight the selected circles.
@@ -196,7 +195,32 @@ var dsv = d3.dsv(";","text/plain");
 				    table.selectAll("tr").classed("highlighted", function(d){
 					    return isInside(d,e);
 					});
-				    				   
+									  
+				   //update Histogramm
+				   var selected = [];
+				   selected = isInside(circle,e);
+				   console.log(selected);
+				   /*
+				   var histoSelected = histoFactory(selected);
+				   
+				   var barWrapper = svg.selectAll(".barWrapper")
+                						.data(histoSelected)
+                						.attr("transform", function (d) {
+                    							return "translate(" + xScale(d.x) + "," + yScale(d.y) + ")";
+                						});
+   
+				   	barWrapper.select("rect")
+               	 			.data(d)
+                			.attr("height", function (d) {
+                    			return h - yScaleHistogramm(d.y) - padding;
+                		});	
+                		
+                	bars.select("text")
+                			.text(function (d) {
+                   				 return d.y;
+                			}
+                	);
+   					*/
 				  }
 				
 				  // If the brush is empty, select all circles.
@@ -211,7 +235,7 @@ var dsv = d3.dsv(";","text/plain");
                      .range([padding, w-padding*2]);
                      
 				  var yScaleHistogramm = d3.scale.linear()
-                     .domain([0, d3.max(rows, function(d) { return d["Miles per gallon"]; })])
+                     .domain([0, yMax(rows)])
                      .range([h-padding, padding]);
 
 				//Define X axis Histogramm
@@ -225,31 +249,41 @@ var dsv = d3.dsv(";","text/plain");
 				                  .scale(yScaleHistogramm)
 				                  .orient("left");
 	
-				 var bins = d3.layout.histogram().value(function(data){return data["Model year"]});
-								 
-				 var histogrammRange = d3.range(d3.min(rows, function(data){return data.my;}), d3.max(rows, function(data){return data.my;}) + 2);
-				 
-        		 bins.bins(histogrammRange);
+				 var histoFactory = d3.layout.histogram().value(function(row){return row["Model year"]});
+	 
+				 var histogrammRange = d3.range(d3.min(rows, function(data){return data["Model year"];}), d3.max(rows, function(data){return data["Model year"];}) + 2);			 
+        		 histoFactory.bins(histogrammRange);
+				var histogramm = histoFactory(rows);
 				
 				var barChart = histo.append("g");
-				
+
 				var barWrapper = histo.selectAll(".barWrapper")
-            						.data(rows)
+            						.data(histogramm)
             						.enter()
            	 						.append("g")
-            						.attr("class", "barWrapper");
-            	/*						
+            						.attr("class", "barWrapper")
+            						.attr("transform", function(d){
+            							return "translate(" + xScaleHistogramm(d.x) + ","+ (yScaleHistogramm(d.y)) + ")";
+            						});
+            	
+            	var barW = 38;
+            	var barOffset = barW / 2 * -1;
+            	
             	barWrapper.append("rect")
-            					.attr("class", "bar")
-            					.attr("x", function() {
-                					return Math.floor((xScaleHistogramm(bins[0].x) - xScaleHistogramm(bins[0].x + bins[0].dx))/2);
+            					.attr("x", barOffset)
+            					.attr("width", barW)
+            					.attr("height", function(d){
+            						return h - yScaleHistogramm(d.y) - padding;
             					})
-            					.attr("width", function(){
-                					return Math.floor(xScaleHistogramm(bins[0].x + bins[0].dx) - xScaleHistogramm(bins[0].x));
-            					})
-            					.attr("height", function(d) { return h - padding * 2 - yScaleHistogramm(d.y); });
-				  */          			
-            	//Create X axis Histogramm
+            	
+            barWrapper.append("text")
+                .attr("y", + 15)
+                .attr("text-anchor", "middle")
+                .text(function (d) {
+                    return d.y;
+                });
+				         	
+               	//Create X axis Histogramm
 				histo.append("g")
 				    .attr("class", "axis")
 				    .attr("transform", "translate(0," + (h - padding) + ")")
@@ -272,20 +306,13 @@ var dsv = d3.dsv(";","text/plain");
 			        
 			    // text label for the y axis Histogramm
 				histo.append("text")  
-					.attr("transform", "translate(45,70)rotate(270)")   
+					.attr("transform", "translate(45,50)rotate(270)")   
 			        .attr("x", 0)
 			        .attr("y", 0)
 			        .attr("font-family", "sans-serif")
 					.attr("font-size", "11px")
 			        .style("text-anchor", "middle")
 			        .text("Count");
-            						
-								
-				  console.log(bins);
-				  
-				  
-				  
-				  
 				  
 				  
 				  //Helper Functions
@@ -295,7 +322,6 @@ var dsv = d3.dsv(";","text/plain");
 				  		
 					  return e[0][0] > d["Acceleration"] || d["Acceleration"] > e[1][0] 
 				    	|| e[0][1] > d["Miles per gallon"] || d["Miles per gallon"] > e[1][1];
-
 				  }
 				  
 				  function isInside(d,e){
@@ -304,8 +330,18 @@ var dsv = d3.dsv(";","text/plain");
 				  		
 					  return e[0][0] <= d["Acceleration"] && d["Acceleration"] <= e[1][0] 
 				    	&& e[0][1] <= d["Miles per gallon"] && d["Miles per gallon"] <= e[1][1];
-
 				  }
+				  
+				  function yMax(rows){
+				  		var count = [];
+				  		for(var i in rows){
+				  			if(count[rows[i]["Model year"]] == undefined){
+				  				count[rows[i]["Model year"]] = 0;
+				  			}
+				  			count[rows[i]["Model year"]]++;
+				  		}
+				  		return d3.max(count);				  
+				  	}
 							   		
    
             });
