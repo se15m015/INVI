@@ -1,9 +1,9 @@
 /*Histogram*/
-.barWrapper rect {
+.bar rect {
     fill: Olive;
 }
 
-.barWrapper text {
+.bar text {
     fill: White;
 }
 

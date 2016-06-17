@@ -197,30 +197,22 @@ var dsv = d3.dsv(";","text/plain");
 					});
 									  
 				   //update Histogramm
+				   allData = svg.selectAll("circle").data();		   
 				   var selected = [];
-				   selected = isInside(circle,e);
-				   console.log(selected);
-				   /*
-				   var histoSelected = histoFactory(selected);
 				   
-				   var barWrapper = svg.selectAll(".barWrapper")
-                						.data(histoSelected)
-                						.attr("transform", function (d) {
-                    							return "translate(" + xScale(d.x) + "," + yScale(d.y) + ")";
-                						});
-   
-				   	barWrapper.select("rect")
-               	 			.data(d)
-                			.attr("height", function (d) {
-                    			return h - yScaleHistogramm(d.y) - padding;
-                		});	
-                		
-                	bars.select("text")
-                			.text(function (d) {
-                   				 return d.y;
-                			}
-                	);
-   					*/
+				   for(var i in allData){
+				   		if(isInside(allData[i],e)){
+				   			selected.push(allData[i]);
+				   		}
+				   }
+				    console.log(selected.length);
+				   if(selected.length > 0){
+				   		var histoSelected = histoFactory(selected);
+				   }else{
+				   		var histoSelected = histoFactory(rows);
+				   }
+				  
+				   updateHistogram(histoSelected);   					
 				  }
 				
 				  // If the brush is empty, select all circles.
@@ -229,7 +221,7 @@ var dsv = d3.dsv(";","text/plain");
 				  }
 				  
 				  //***** Bar Chart ******//
-				 	  
+  
 				  var xScaleHistogramm = d3.scale.linear()
                      .domain([d3.min(rows, function(d) { return d["Model year"]; })-0.5, d3.max(rows, function(d) { return d["Model year"]; })+0.5])
                      .range([padding, w-padding*2]);
@@ -253,36 +245,37 @@ var dsv = d3.dsv(";","text/plain");
 	 
 				 var histogrammRange = d3.range(d3.min(rows, function(data){return data["Model year"];}), d3.max(rows, function(data){return data["Model year"];}) + 2);			 
         		 histoFactory.bins(histogrammRange);
+        		 
 				var histogramm = histoFactory(rows);
 				
 				var barChart = histo.append("g");
 
-				var barWrapper = histo.selectAll(".barWrapper")
+				var bars = histo.selectAll(".bar")
             						.data(histogramm)
             						.enter()
            	 						.append("g")
-            						.attr("class", "barWrapper")
+            						.attr("class", "bar")
             						.attr("transform", function(d){
             							return "translate(" + xScaleHistogramm(d.x) + ","+ (yScaleHistogramm(d.y)) + ")";
             						});
-            	
+
             	var barW = 38;
             	var barOffset = barW / 2 * -1;
             	
-            	barWrapper.append("rect")
+            	var rect = bars.append("rect")
             					.attr("x", barOffset)
             					.attr("width", barW)
             					.attr("height", function(d){
             						return h - yScaleHistogramm(d.y) - padding;
             					})
             	
-            barWrapper.append("text")
-                .attr("y", + 15)
-                .attr("text-anchor", "middle")
-                .text(function (d) {
-                    return d.y;
-                });
-				         	
+            	var text = bars.append("text")
+                				.attr("y", + 15)
+                				.attr("text-anchor", "middle")
+                				.text(function (d) {
+                    				return d.y;
+                				});
+				
                	//Create X axis Histogramm
 				histo.append("g")
 				    .attr("class", "axis")
@@ -314,8 +307,23 @@ var dsv = d3.dsv(";","text/plain");
 			        .style("text-anchor", "middle")
 			        .text("Count");
 				  
-				  
-				  //Helper Functions
+				  //Helper Functions	
+				  function updateHistogram(data){
+				  	bars.data(data)
+                			.attr("transform", function (d) {
+                    					return "translate(" + xScaleHistogramm(d.x) + "," + yScaleHistogramm(d.y) + ")";
+                				  });
+				   	bars.select("rect")
+               	 			.data(data)
+                			.attr("height", function (d) {
+                    			return h - yScaleHistogramm(d.y) - padding;
+                		});	             		
+                	bars.select("text")
+                			.text(function (d) {
+                   				 return d.y;
+                			});
+				  }
+				  			  
 				  function isOutside(d,e){
 				 	   if(d == undefined)
 				  		return false;
